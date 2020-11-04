@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <title>The KeyBourde</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-keyboard@latest/build/css/index.css">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+
+  <body>
+    <header>
+      <h1><textarea id="headerH1" class="headerH1">The Keybourde</textarea></h1>
+    </header>
+    <script>
+      // http://patorjk.com/software/taag/#p=display&f=Graceful&t=The%20KeyBourde
+      var logo = ` ____  _  _  ____    __ _  ____  _  _  ____   __   _  _  ____  ____  ____ 
+(_  _)/ )( \\(  __)  (  / )(  __)( \\/ )(  _ \\ /  \\ / )( \\(  _ \\(    \\(  __)
+  )(  ) __ ( ) _)    )  (  ) _)  )  /  ) _ ((  O )) \\/ ( )   / ) D ( ) _) 
+ (__) \\_)(_/(____)  (__\\_)(____)(__/  (____/ \\__/ \\____/(__\\_)(____/(____)`;
+        document.getElementById('headerH1').value = logo;
+    </script>
+    <!-- Here is our page's main content -->
+    <main>
+        <div id="beforeSynth" class="beforeSynth">Hi! This is a small polyphonic synth based on tone.js, simple-keyboard and nexusUI :)
+        It leverage your laptop embeded KEYBOARD. It allows 4 notes or arpegios :) ENJOY, hit your keybourde !
+        </div>
+        <br>
+
+        <div  id="mainTable" class="mainTable">
+        <div style="display: table-row">
+            <div style="width: 1000px; display: table-cell;"> 
+            <div id="mainSynth" class="mainSynth">
+                <div><textarea id="display" class="display">Init...</textarea></div>
+                <div class="simple-keyboard"></div>
+                <div class="simple-keyboard-arrows"></div><br>
+                <div><textarea id="logs" class="logs"></textarea></div>
+            </div>
+            </div>
+            <div id="scopeCell" class="scopeCell"> 
+            <div id="scope" class='scope'>Oscilloscope : </div> 
+            </div>
+        </div>
+        </div>  
+        <br>  
+
+        <div>
+<textarea id="afterSynth" class="afterSynth">A- & A+   set up the enveloppe ATTACK of the synth amp
+S- & S+   set up the enveloppe SUSTAIN of the synth amp
+F- & F+   set up the FILTER cut off frequency (long press possible while play)
+Di- & Di+ set up a DISTORTION ration
+De- & De+ set up a DELAY ping pong. Delay time if set up to half of the time period
+T- & T+   set up the TIME period for the arpegiator and the delay</textarea></div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/simple-keyboard@latest/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.65/Tone.js"> </script>
+    <script src="NexusUI.js"> </script>
+    <script src="index.js"></script>
+    <script src="keyboardManager.js"></script>
+    <!-- And here is our main footer that is used across all the pages of our website -->
+    <footer>
+        <p>By Rwax, Source code on github : <a href="https://github.com/ErwanDavid/thekeybourde">https://github.com/ErwanDavid/thekeybourde</a> </p>
+    </footer>
+
+  </body>
+</html>
