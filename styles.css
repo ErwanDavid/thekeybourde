@@ -127,6 +127,8 @@ footer {
 .hg-button.hg-highlight {
   box-shadow: 0px 0px 40px 5px rgba(255, 255, 0, 0.5);
   z-index: 1;
+  background: #8a97db;
+
 }
 .simple-keyboard-arrows.simple-keyboard {
   align-self: flex-end;
@@ -169,5 +171,5 @@ footer {
   color: blanchedalmond;
   height: 110px;
   resize: none;
-  border:border: var(--main-synth-border) solid var(--main-synth-border-color);
+  border: var(--main-synth-border) solid var(--main-synth-border-color);
 }

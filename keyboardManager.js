@@ -41,35 +41,35 @@ log_info("Oscillo ready");
 
 function playNote(note) {
     keyboard.addButtonTheme(enTofr(note), "hg-highlight"); 
+    if (note_on.length < 4) {
+        note_on.push(note);
         if (arpOn) {
             Tone.Transport.stop();
             Tone.Transport.position = 0;
             Tone.Transport.cancel();
-            note_on.push(note);
             Tone.Transport.scheduleRepeat((time) => {
-            var relativeTime = 0;
-            for (const note_arp in note_on) {
-                log_info("   sched ARP " + note_on[note_arp] + " " + relativeTime + " " + cur_tempo);
-                synth.triggerAttackRelease( note_on[note_arp], getHigherTempo(cur_tempo), time + relativeTime);
-                relativeTime += Tone.Time(getHigherTempo(cur_tempo)).toSeconds();
-            }
+                var relativeTime = 0;
+                for (const note_arp in note_on.sort()) {
+                    log_info("   sched ARP " + note_on[note_arp] + " " + relativeTime + " " + cur_tempo);
+                    synth.triggerAttackRelease( note_on[note_arp], getdelayArp(cur_tempo_id, note_on.length), time + relativeTime);
+                    relativeTime += Tone.Time(getdelayArp(cur_tempo_id, note_on.length)).toSeconds();
+                }
             }, cur_tempo);
-
             // transport must be started before it starts invoking events
             Tone.Transport.start();
             log_info("  ARP " + note_on);
         } else {
-            if (note_on.length < 4) {
-                note_on.push(note);
+                
                 synth.triggerAttack(note, Tone.now(), 1);
                 noteLow = Tone.Frequency(note).transpose(-2);
                 noteFreq = Tone.Frequency(note).toFrequency();
                 //synth2.triggerAttack(noteLow, Tone.now(), 1);
                 log_info("  Play " + enTofr(note)  + " " + noteFreq.toFixed(1)+ "hz");
-            } else {
-                log_info("  Reach max poly " + note_on.length + " skipping");
             }
-        }
+    }
+    else {
+        log_info("  Reach max poly " + note_on.length + " skipping");
+    }
 }
 
 
@@ -237,7 +237,7 @@ document.onkeydown = function(e) {
         pingpongdelay.set({delayTime : cur_delay_time , feedback: cur_delay });
     }else if (e.which == 187)  {
         cur_tempo_id = cur_tempo_id + 1
-        if (cur_tempo_id >= (tempo_value.length - 1)) {cur_tempo_id = (tempo_value.length -1)};
+        if (cur_tempo_id >= (tempo_value.length - 2)) {cur_tempo_id = (tempo_value.length -2)};
         cur_tempo =  tempo_value[cur_tempo_id]
         cur_delay_time = getHigherTempo(cur_tempo);
         if (cur_delay === 0) {cur_delay_time = '128n'}
@@ -262,6 +262,18 @@ function getHigherTempo(mytempo) {
         if (index > tempo_value.length) {index = tempo_value.length }
     }
     return tempo_value[index];
+}
+
+function getdelayArp(tempo, note_cpt) {
+    if (note_cpt === 1) {
+        return tempo_value[tempo+1]
+    } else if (note_cpt === 2) {
+        return tempo_value[tempo+1]
+    } else if (note_cpt === 3) {
+        return tempo_value[tempo+2]
+    } else {
+        return tempo_value[tempo+2]
+    }
 }
 
 function delayTimeCalc(delay) {
