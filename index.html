@@ -22,35 +22,46 @@
     </script>
     <!-- Here is our page's main content -->
     <main>
-        <div id="beforeSynth" class="beforeSynth">Hi! This is a small polyphonic synth based on tone.js, simple-keyboard and nexusUI :)
-        It leverage your laptop embeded KEYBOARD. It allows 4 notes or arpegios :) ENJOY, hit your keybourde !
+        <div id="beforeSynth" class="beforeSynth">Hi! This is a small polyphonic synth based on 
+          <a href="https://tonejs.github.io/">tone.js</a>,  
+        <a href="https://www.npmjs.com/package/simple-keyboard">simple-keyboard</a> and 
+        <a href="https://nexus-js.github.io/ui/">nexusUI</a>. 
+        It is designed for your <u>LAPTOP</u> embeded KEYBOARD (not phone yet). It allows 4 notes or arpegios :) ENJOY, hit your keybourde !
         </div>
         <br>
 
         <div  id="mainTable" class="mainTable">
-        <div style="display: table-row">
-            <div style="width: 1000px; display: table-cell;"> 
-            <div id="mainSynth" class="mainSynth">
-                <div><textarea id="display" class="display">Init...</textarea></div>
-                <div class="simple-keyboard"></div>
-                <div class="simple-keyboard-arrows"></div><br>
-                <div><textarea id="logs" class="logs"></textarea></div>
+            <div style="display: table-row">
+                <div style="width: 1000px; display: table-cell;"> 
+                    <div id="mainSynth" class="mainSynth">
+                        <div><textarea id="display" class="display">Init...</textarea></div>
+                        <div class="simple-keyboard"></div>
+                        <div class="simple-keyboard-arrows"></div>
+                        <br>
+                        <div style="width: 100%; display: table-cell;"> 
+                          <div style="display: table-row;">
+                              <div style="display: table-cell; min-width: 350px;width: 50%;vertical-align: top;">
+                                <textarea id="logs" class="logs"></textarea></div>
+                              <div style="display: table-cell;width: 50%;vertical-align: middle;">
+                                <textarea id="notes" class="notes"></textarea></div>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="scopeCell" class="scopeCell"> 
+                  <div id="scope" class='scope'>Oscilloscope : </div> 
+                </div>
             </div>
-            </div>
-            <div id="scopeCell" class="scopeCell"> 
-            <div id="scope" class='scope'>Oscilloscope : </div> 
-            </div>
-        </div>
         </div>  
         <br>  
 
         <div>
-<textarea id="afterSynth" class="afterSynth">A- & A+   set up the enveloppe ATTACK of the synth amp
-S- & S+   set up the enveloppe SUSTAIN of the synth amp
-F- & F+   set up the FILTER cut off frequency (long press possible while play)
+<textarea id="afterSynth" class="afterSynth">A-  & A+  set up the enveloppe ATTACK of the synth amp
+S-  & S+  set up the enveloppe SUSTAIN of the synth amp
+F-  & F+  set up the FILTER cut off frequency (long press possible while play)
 Di- & Di+ set up a DISTORTION ration
 De- & De+ set up a DELAY ping pong. Delay time if set up to half of the time period
-T- & T+   set up the TIME period for the arpegiator and the delay</textarea></div>
+T-  & T+  set up the TIME period for the arpegiator and the delay</textarea></div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/simple-keyboard@latest/build/index.js"></script>

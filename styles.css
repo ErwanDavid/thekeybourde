@@ -37,7 +37,7 @@ footer {
 }
 
 .beforeSynth {
-  max-width: 970px;
+  max-width: 1200px;
 }
 
 
@@ -150,17 +150,34 @@ footer {
 }
 .logs {
   resize: none;
-  width: 20%;
   background:black;
   font-family: "Lucida Console", Courier, monospace;
   color:green;
   overflow:hidden;
-  min-width: 400px;
+  min-width: 300px;
   border:1px solid black;
   height: 60px;
   display: block;
   margin-left: auto;
   margin-right: auto;
+}
+
+.notes {
+  resize: none;
+  font-size: 40px;
+  background:var(--main-synth-bg-color);
+  font-family: "Lucida Console", Courier, monospace;
+  color:#344ab1;
+  overflow:hidden;
+  min-width: 300px;
+  max-width: 400px;
+  border:var(--main-synth-border) solid var(--main-synth-border-color);
+  height: 45px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .afterSynth {

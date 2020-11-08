@@ -12,7 +12,7 @@ var cur_disto =  0.0;
 var cur_delay =  0.0;
 var cur_detune =  0.0;
 var cur_delay_time =  '128n';
-var octave_shift = 3
+var octave_shift = 3;
 var arpOn = false ;
 
 var key_note = {};
@@ -44,7 +44,7 @@ function playNote(note) {
     if (note_on.length < 4) {
         note_on.push(note);
         if (arpOn) {
-            Tone.Transport.stop();
+            //Tone.Transport.stop();
             Tone.Transport.position = 0;
             Tone.Transport.cancel();
             Tone.Transport.scheduleRepeat((time) => {
@@ -76,7 +76,7 @@ function playNote(note) {
 function releaseNote(note) {
     keyboard.removeButtonTheme(enTofr(note), "hg-highlight");
     if (arpOn) {
-        Tone.Transport.stop();
+        //Tone.Transport.stop();
         Tone.Transport.position = 0;
         Tone.Transport.cancel();
 
@@ -125,25 +125,25 @@ document.onkeydown = function(e) {
         }                
     }
     if (e.which == 49)  {
-        cur_enveloppe_attack = cur_enveloppe_attack - 0.1;
+        cur_enveloppe_attack = cur_enveloppe_attack - 0.05;
         if (cur_enveloppe_attack < 0)  { cur_enveloppe_attack = 0;}
         log_info("Attack +" + cur_enveloppe_attack)
         synth.set({envelope: {attack: cur_enveloppe_attack }});
         synth2.set({envelope: {attack: cur_enveloppe_attack }});
     }  else if (e.which == 50)  {
-        cur_enveloppe_attack = cur_enveloppe_attack + 0.1;
+        cur_enveloppe_attack = cur_enveloppe_attack + 0.05;
         if (cur_enveloppe_attack > 1)  { cur_enveloppe_attack = 1;}
         log_info("Attack +" + cur_enveloppe_attack)
         synth.set({envelope: {attack: cur_enveloppe_attack }});
         synth2.set({envelope: {attack: cur_enveloppe_attack }});
     }  else if (e.which == 51)  {
-        cur_enveloppe_sustain = cur_enveloppe_sustain - 0.1;
+        cur_enveloppe_sustain = cur_enveloppe_sustain - 0.05;
         if (cur_enveloppe_sustain < 0)  { cur_enveloppe_sustain = 0;}
         log_info("Sustain -" + cur_enveloppe_sustain)
         synth.set({envelope: {sustain: cur_enveloppe_sustain }});
         synth2.set({envelope: {sustain: cur_enveloppe_sustain }});
     } else if (e.which == 52)  {
-        cur_enveloppe_sustain = cur_enveloppe_sustain + 0.1;
+        cur_enveloppe_sustain = cur_enveloppe_sustain + 0.05;
         if (cur_enveloppe_sustain > 1)  { cur_enveloppe_sustain = 1;}
         log_info("Sustain +" + cur_enveloppe_sustain)
         synth.set({envelope: {sustain: cur_enveloppe_sustain }});
@@ -151,15 +151,15 @@ document.onkeydown = function(e) {
     }
     else if (e.which == 53)  {
         
-        cur_filter_freq = cur_filter_freq - (cur_filter_freq/10);
-        if (cur_filter_freq < 20)  { cur_filter_freq = 0;}
+        cur_filter_freq = cur_filter_freq - ((cur_filter_freq )/10);
+        if (cur_filter_freq < 1)  { cur_filter_freq = 1;}
         filter.set({
             frequency: cur_filter_freq
         });
         log_info("Filter -" + cur_filter_freq)
         
     } else if (e.which == 54)  {
-        cur_filter_freq = cur_filter_freq + (cur_filter_freq/10);
+        cur_filter_freq = cur_filter_freq + ((cur_filter_freq )/10);
         if (cur_filter_freq > 9000)  { cur_filter_freq = 9000;}
         filter.set({
             frequency: cur_filter_freq
@@ -176,7 +176,7 @@ document.onkeydown = function(e) {
         log_info("Disto -" + cur_disto)
         
     } else if (e.which == 56)  {
-        cur_disto = cur_disto + 0.1;
+        cur_disto = cur_disto + 0.05;
         if (cur_disto > 1)  { cur_disto = 1;}
         distortion.set({
             distortion: cur_disto
@@ -221,12 +221,12 @@ document.onkeydown = function(e) {
     } else if (e.which == 39)  {
         cur_detune = cur_detune + (20 - (cur_detune / 10));
         synth.set({ detune: cur_detune });
-        log_info("Detune + " + cur_detunetoFixed(1));
+        log_info("Detune + " + cur_detune.toFixed(1));
 
     } else if (e.which == 37)  {
         cur_detune = cur_detune - (20 - (cur_detune / 10));
         synth.set({ detune: cur_detune });
-        log_info("Detune - " + cur_detunetoFixed(1));
+        log_info("Detune - " + cur_detune.toFixed(1));
     }else if (e.which == 219)  {
         cur_tempo_id = cur_tempo_id - 1;
         if (cur_tempo_id <= 0) {cur_tempo_id = 0};
@@ -353,15 +353,24 @@ function log_info(mytext) {
     console.log(mytext);
     document.getElementById('logs').value = document.getElementById('logs').value + " LOG:\t" +  mytext + '\n';
     document.getElementById('logs').scrollTop = document.getElementById('logs').scrollHeight ;
-    document.getElementById('display').value =  ' Attack       : ' + cur_enveloppe_attack.toFixed(1) + '\t';
-    document.getElementById('display').value += ' Sustain      : ' + cur_enveloppe_sustain.toFixed(1) + '\t';
+    document.getElementById('display').value =  ' Attack       : ' + cur_enveloppe_attack.toFixed(2) + '\t';
+    document.getElementById('display').value += ' Sustain      : ' + cur_enveloppe_sustain.toFixed(2) + '\t';
     document.getElementById('display').value += ' Oscillator   : ' + osc_type[cur_osc_id] + '\n';
-    document.getElementById('display').value += ' Cut Off      : ' + cur_filter_freq.toFixed(1) + '\t';
-    document.getElementById('display').value += ' Distortion   : ' + cur_disto.toFixed(1) + '\t';
+    document.getElementById('display').value += ' Cut Off      : ' + cur_filter_freq.toFixed(0) + '\t';
+    document.getElementById('display').value += ' Distortion   : ' + cur_disto.toFixed(2) + '\t';
     document.getElementById('display').value += ' Delay        : ' + cur_delay.toFixed(1) + "\n";
     document.getElementById('display').value += ' Detune       : ' + cur_detune.toFixed(1) + '\t';
     document.getElementById('display').value += ' Octave shift : ' + octave_shift + '\t';
     document.getElementById('display').value += ' Tempo        : ' + cur_tempo ;
+    document.getElementById('notes').value =  enTofrTab(note_on);
+}
+
+function enTofrTab(noteArray) {
+    var noteDisplay = '';
+    for (const noteAr in noteArray) {
+        noteDisplay = noteDisplay + " " + enTofr(noteArray[noteAr]);
+    }
+    return noteDisplay
 }
 
 function enTofr(noteIn) {
