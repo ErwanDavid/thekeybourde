@@ -1,18 +1,18 @@
 
-var osc_type =  ['sine','square', 'triangle', 'sawtooth'];
+var osc_type =  ['sine','fatsquare', 'fattriangle', 'fatsawtooth'];
 var osc_color = ['#507C9E', '#FFFF33', '#008000', '#ff4500'];
 var cur_osc_id = 0;
 var tempo_value =  ['2n','4n', '8n', '16n', '32n', '64n', '128n'];
-var cur_tempo_id = 0 ;
+var cur_tempo_id = 1 ;
 var cur_tempo = tempo_value[cur_tempo_id] ;
 var cur_enveloppe_attack = 0.0;
 var cur_enveloppe_sustain =  0.1;
 var cur_filter_freq = 9000;
 var cur_disto =  0.0;
 var cur_delay =  0.0;
-var cur_detune =  0.0;
+var cur_detune =  30;
 var cur_delay_time =  '128n';
-var octave_shift = 3;
+var octave_shift = 4;
 var arpOn = false ;
 
 var key_note = {};
@@ -23,9 +23,13 @@ recalulate_note();
 const filter = new Tone.Filter({type : "lowpass" ,frequency : cur_filter_freq ,rolloff : -12 ,Q : 5 ,gain : 0});
 const pingpongdelay =  new Tone.PingPongDelay(cur_delay_time, cur_delay);
 const distortion = new Tone.Distortion(cur_disto);
-const synth  = new Tone.PolySynth(Tone.Synth).toDestination();
-const synth2 = new Tone.PolySynth(Tone.Synth).toDestination();
-synth2.set({ detune: -10 });
+const synth  = new Tone.PolySynth(Tone.Synth, {
+    oscillator: {
+        type: "sine",
+        count: 3,
+        spread: 30
+    }
+    }).toDestination();
 
 Tone.Destination.chain(filter, distortion, pingpongdelay);
 log_info("Synth ready");
@@ -77,16 +81,13 @@ function releaseNote(note) {
     keyboard.removeButtonTheme(enTofr(note), "hg-highlight");
     if (arpOn) {
         //Tone.Transport.stop();
-        Tone.Transport.position = 0;
+        //Tone.Transport.position = 0;
         Tone.Transport.cancel();
 
     }
     else {
         synth.triggerRelease(note);
         noteLow = Tone.Frequency(note).transpose(-2);
-        //synth2.triggerRelease(noteLow);
-        
-        //log_info("  note stop (key)   " + enTofr(note) );
     }
 
 
@@ -104,13 +105,13 @@ document.onkeyup = function(e) {
         releaseNote(note_string);
     }
     else if (e.which == 39)  {
-        cur_detune = 0;
-        synth.set({ detune: cur_detune });
+        //cur_detune = 30;
+        //synth.set({ oscillator: { spread : cur_detune }});
 
     }
     else if (e.which == 37)  {
-        cur_detune = 0;
-        synth.set({ detune: cur_detune });
+        //cur_detune = 30;
+        //synth.set({ oscillator: { spread : cur_detune }});
     }
 }
 
@@ -187,7 +188,6 @@ document.onkeydown = function(e) {
         cur_osc_id = cur_osc_id + 1
         if (cur_osc_id >= osc_type.length) {cur_osc_id = 0}
         synth.set({oscillator: { type: osc_type[cur_osc_id] } });
-        synth2.set({oscillator: { type: osc_type[cur_osc_id] } });
         osc.colorize("accent",osc_color[cur_osc_id]);
         //document.getElementById('display').style.color = osc_color[cur_osc_id];
         log_info("Osc " + osc_type[cur_osc_id]);
@@ -219,13 +219,13 @@ document.onkeydown = function(e) {
         pingpongdelay.set({delayTime : cur_delay_time , feedback: cur_delay });
         log_info("Delay - " + cur_delay + " - " + cur_delay_time);
     } else if (e.which == 39)  {
-        cur_detune = cur_detune + (20 - (cur_detune / 10));
-        synth.set({ detune: cur_detune });
+        cur_detune = cur_detune + 5;
+        synth.set({ oscillator: { spread : cur_detune }});
         log_info("Detune + " + cur_detune.toFixed(1));
 
     } else if (e.which == 37)  {
-        cur_detune = cur_detune - (20 - (cur_detune / 10));
-        synth.set({ detune: cur_detune });
+        cur_detune = cur_detune - 5;
+        synth.set({ oscillator: { spread : cur_detune }});
         log_info("Detune - " + cur_detune.toFixed(1));
     }else if (e.which == 219)  {
         cur_tempo_id = cur_tempo_id - 1;
