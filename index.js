@@ -9,7 +9,7 @@ const french = {
       "Ctrl @ ToggleDocumentation Ctrl"
     ],
     default: [
-      "\u00B2 A- A+ S- S+ F- F+ Di- Di+ De- De+ T- T+ {bksp}",
+      "\u00B2 A- A+ S- S+ Dt- Dt+ Di- Di+ De- De+ T- T+ {bksp}",
       "{tab} a Do# Re# r Fa# Sol# La# i Do#+ Re#+ ^ $ {enter}",
       "Poly-Arp Do Re Mi Fa Sol La Si Do+ Re+ Mi+ Fa+ Sol+ {enter}",
       "Wav\nForm < Do- Re- Mi- Fa- Sol- La- Si- Do Re Mi Wav\nForm",
@@ -38,7 +38,7 @@ let mybuttonTheme = [
     },
     {
       class: "hg-used",
-      buttons: "A- A+ S- S+ F- F+ Di- Di+ De- De+ T- T+ ToggleDocumentation Octave+ Freq- Octave- Freq+ Wav\nForm Poly-Arp"
+      buttons: "A- A+ S- S+ Dt- Dt+ Di- Di+ De- De+ T- T+ ToggleDocumentation Wav\nForm Poly-Arp"
     }
   ];
 
@@ -63,7 +63,7 @@ let keyboard = new Keyboard({
 let mybuttonThemeArrows = [ 
   {
     class: "hg-used",
-    buttons: "Freq- Octave- Octave+ Freq+ "
+    buttons: "Filter- Octave- Octave+ Filter+"
   }
 ];
 let keyboardArrows = new Keyboard(".simple-keyboard-arrows", {
@@ -71,7 +71,7 @@ let keyboardArrows = new Keyboard(".simple-keyboard-arrows", {
   buttonTheme : mybuttonThemeArrows,
   layout: {
     shift: ["{arrowup}", "{arrowleft} {arrowdown} {arrowright}"],
-    default: ["Octave+", "Freq- Octave- Freq+"]
+    default: ["Octave+", "Filter- Octave- Filter+"]
   }
 });
 

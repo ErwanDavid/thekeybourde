@@ -1,6 +1,6 @@
 
-var osc_type =  ['sine','fatsquare', 'fattriangle', 'fatsawtooth'];
-var osc_color = ['#507C9E', '#FFFF33', '#008000', '#ff4500'];
+var osc_type =  ['sine','fatsquare', 'triangle', 'fatsawtooth'];
+var osc_color = ['#1B8BD2', '#FFFF33', '#008000', '#ff4500']; // 507C9E  
 var cur_osc_id = 0;
 var tempo_value =  ['2n','4n', '8n', '16n', '32n', '64n', '128n'];
 var cur_tempo_id = 1 ;
@@ -10,7 +10,7 @@ var cur_enveloppe_sustain =  0.1;
 var cur_filter_freq = 9000;
 var cur_disto =  0.0;
 var cur_delay =  0.0;
-var cur_detune =  30;
+var cur_detune =  0;
 var cur_delay_time =  '128n';
 var octave_shift = 4;
 var arpOn = false ;
@@ -26,7 +26,7 @@ const distortion = new Tone.Distortion(cur_disto);
 const synth  = new Tone.PolySynth(Tone.Synth, {
     oscillator: {
         type: "sine",
-        count: 3,
+        count: 2,
         spread: 30
     }
     }).toDestination();
@@ -36,7 +36,9 @@ log_info("Synth ready");
 
 let osc = new Nexus.Oscilloscope("#scope", {'size': [340,480] });
 osc.colorize("accent",osc_color[cur_osc_id])
-//document.getElementById('display').style.color = osc_color[cur_osc_id];
+
+document.getElementById('mainTable').style.borderColor = osc_color[cur_osc_id]  + "CC";
+document.getElementById('display').style.color = osc_color[cur_osc_id];
 osc.colorize("fill","#000000")
 osc.connect(Tone.Master);
 log_info("Oscillo ready");
@@ -61,7 +63,7 @@ function playNote(note) {
             }, cur_tempo);
             // transport must be started before it starts invoking events
             Tone.Transport.start();
-            log_info("  ARP " + note_on);
+            log_info("  ARP " + enTofrTab(note_on));
         } else {
                 
                 synth.triggerAttack(note, Tone.now(), 1);
@@ -72,7 +74,7 @@ function playNote(note) {
             }
     }
     else {
-        log_info("  Reach max poly " + note_on.length + " skipping");
+        log_info("  Reach max polyphony " + note_on.length + " skipping");
     }
 }
 
@@ -87,7 +89,6 @@ function releaseNote(note) {
     }
     else {
         synth.triggerRelease(note);
-        noteLow = Tone.Frequency(note).transpose(-2);
     }
 
 
@@ -98,25 +99,27 @@ function releaseNote(note) {
     log_info("  Stop " + enTofr(note) );
 }
 
+function highlighNote(noteID){
+    keyboard.addButtonTheme(IDtoName(noteID), "hg-highlight"); 
+}
+function UNhighlighNote(noteID){
+    keyboard.removeButtonTheme(IDtoName(noteID), "hg-highlight"); 
+}
 
 document.onkeyup = function(e) {
+    
     if (e.which in key_note) {
         var note_string = key_note[e.which]
         releaseNote(note_string);
     }
-    else if (e.which == 39)  {
-        //cur_detune = 30;
-        //synth.set({ oscillator: { spread : cur_detune }});
-
-    }
-    else if (e.which == 37)  {
-        //cur_detune = 30;
-        //synth.set({ oscillator: { spread : cur_detune }});
+    else {
+        UNhighlighNote(e.which);
     }
 }
 
 document.onkeydown = function(e) {
     console.log(e.which);
+    
     if (e.which in key_note) {
         var note_string = key_note[e.which]
         if (note_on.includes(note_string)) {
@@ -125,134 +128,126 @@ document.onkeydown = function(e) {
             playNote(note_string)
         }                
     }
-    if (e.which == 49)  {
-        cur_enveloppe_attack = cur_enveloppe_attack - 0.05;
-        if (cur_enveloppe_attack < 0)  { cur_enveloppe_attack = 0;}
-        log_info("Attack +" + cur_enveloppe_attack)
-        synth.set({envelope: {attack: cur_enveloppe_attack }});
-        synth2.set({envelope: {attack: cur_enveloppe_attack }});
-    }  else if (e.which == 50)  {
-        cur_enveloppe_attack = cur_enveloppe_attack + 0.05;
-        if (cur_enveloppe_attack > 1)  { cur_enveloppe_attack = 1;}
-        log_info("Attack +" + cur_enveloppe_attack)
-        synth.set({envelope: {attack: cur_enveloppe_attack }});
-        synth2.set({envelope: {attack: cur_enveloppe_attack }});
-    }  else if (e.which == 51)  {
-        cur_enveloppe_sustain = cur_enveloppe_sustain - 0.05;
-        if (cur_enveloppe_sustain < 0)  { cur_enveloppe_sustain = 0;}
-        log_info("Sustain -" + cur_enveloppe_sustain)
-        synth.set({envelope: {sustain: cur_enveloppe_sustain }});
-        synth2.set({envelope: {sustain: cur_enveloppe_sustain }});
-    } else if (e.which == 52)  {
-        cur_enveloppe_sustain = cur_enveloppe_sustain + 0.05;
-        if (cur_enveloppe_sustain > 1)  { cur_enveloppe_sustain = 1;}
-        log_info("Sustain +" + cur_enveloppe_sustain)
-        synth.set({envelope: {sustain: cur_enveloppe_sustain }});
-        synth2.set({envelope: {sustain: cur_enveloppe_sustain }});
-    }
-    else if (e.which == 53)  {
-        
-        cur_filter_freq = cur_filter_freq - ((cur_filter_freq )/10);
-        if (cur_filter_freq < 1)  { cur_filter_freq = 1;}
-        filter.set({
-            frequency: cur_filter_freq
-        });
-        log_info("Filter -" + cur_filter_freq)
-        
-    } else if (e.which == 54)  {
-        cur_filter_freq = cur_filter_freq + ((cur_filter_freq )/10);
-        if (cur_filter_freq > 9000)  { cur_filter_freq = 9000;}
-        filter.set({
-            frequency: cur_filter_freq
-        });
-        log_info("Filter +" + cur_filter_freq)
-
-    } else if (e.which == 55)  {
-        
-        cur_disto = cur_disto - 0.05;
-        if (cur_disto < 0)  { cur_disto = 0;}
-        distortion.set({
-            distortion: cur_disto
-        });
-        log_info("Disto -" + cur_disto)
-        
-    } else if (e.which == 56)  {
-        cur_disto = cur_disto + 0.05;
-        if (cur_disto > 1)  { cur_disto = 1;}
-        distortion.set({
-            distortion: cur_disto
-        });
-        log_info("Disto +" + cur_disto)
-
-    } else if (e.which == 16)  {
-        cur_osc_id = cur_osc_id + 1
-        if (cur_osc_id >= osc_type.length) {cur_osc_id = 0}
-        synth.set({oscillator: { type: osc_type[cur_osc_id] } });
-        osc.colorize("accent",osc_color[cur_osc_id]);
-        //document.getElementById('display').style.color = osc_color[cur_osc_id];
-        log_info("Osc " + osc_type[cur_osc_id]);
-    } else if (e.which == 38)  {
-        // arrow up
-        octave_shift = octave_shift + 1;
-        log_info("Octave + " + octave_shift)
-        recalulate_note();
-
-    } else if (e.which == 40)  {
-        // arrow down
-        octave_shift = octave_shift - 1;
-        log_info("Octave - " + octave_shift)
-        recalulate_note();
-
-    } else if (e.which == 57)  {
-        cur_delay = cur_delay  - 0.1;
-        if (cur_delay < 0)  { cur_delay = 0;}
-        cur_delay_time = getHigherTempo(cur_tempo);
-        if (cur_delay === 0) {cur_delay_time = '128n'}
-        pingpongdelay.set({delayTime : cur_tempo , feedback: cur_delay });
-        log_info("Delay - " + cur_delay + " - " + cur_delay_time);
-
-    } else if (e.which == 48)  {
-        cur_delay = cur_delay  + 0.1;
-        if (cur_delay > 1)  { cur_delay = 1;}
-        cur_delay_time = getHigherTempo(cur_tempo);
-        if (cur_delay === 0) {cur_delay_time = '128n'}
-        pingpongdelay.set({delayTime : cur_delay_time , feedback: cur_delay });
-        log_info("Delay - " + cur_delay + " - " + cur_delay_time);
-    } else if (e.which == 39)  {
-        cur_detune = cur_detune + 5;
-        synth.set({ oscillator: { spread : cur_detune }});
-        log_info("Detune + " + cur_detune.toFixed(1));
-
-    } else if (e.which == 37)  {
-        cur_detune = cur_detune - 5;
-        synth.set({ oscillator: { spread : cur_detune }});
-        log_info("Detune - " + cur_detune.toFixed(1));
-    }else if (e.which == 219)  {
-        cur_tempo_id = cur_tempo_id - 1;
-        if (cur_tempo_id <= 0) {cur_tempo_id = 0};
-        cur_tempo =  tempo_value[cur_tempo_id]
-        cur_delay_time = getHigherTempo(cur_tempo);
-        log_info("Tempo - " + cur_tempo + " " + cur_tempo_id);
-        if (cur_delay === 0) {cur_delay_time = '128n'}
-        pingpongdelay.set({delayTime : cur_delay_time , feedback: cur_delay });
-    }else if (e.which == 187)  {
-        cur_tempo_id = cur_tempo_id + 1
-        if (cur_tempo_id >= (tempo_value.length - 2)) {cur_tempo_id = (tempo_value.length -2)};
-        cur_tempo =  tempo_value[cur_tempo_id]
-        cur_delay_time = getHigherTempo(cur_tempo);
-        if (cur_delay === 0) {cur_delay_time = '128n'}
-        pingpongdelay.set({delayTime : cur_delay_time , feedback: cur_delay });
-        log_info("Tempo + " + cur_tempo + " " + cur_tempo_id);
-    } else if (e.which == 32)  {
-        handleShift();
-    } else if (e.which == 20)  {
-        arpOn = !arpOn;
-        if (arpOn) {
-            keyboard.addButtonTheme("Poly-Arp", "hg-highlight");
-        } else {
-            keyboard.removeButtonTheme("Poly-Arp", "hg-highlight");
+    else {
+        highlighNote(e.which);
+        if (e.which == 49)  {
+            cur_enveloppe_attack = cur_enveloppe_attack - 0.05;
+            if (cur_enveloppe_attack < 0)  { cur_enveloppe_attack = 0;}
+            log_info("Attack +" + cur_enveloppe_attack)
+            synth.set({envelope: {attack: cur_enveloppe_attack }});
+        }  else if (e.which == 50)  {
+            cur_enveloppe_attack = cur_enveloppe_attack + 0.05;
+            if (cur_enveloppe_attack > 1)  { cur_enveloppe_attack = 1;}
+            log_info("Attack +" + cur_enveloppe_attack)
+            synth.set({envelope: {attack: cur_enveloppe_attack }});
+        }  else if (e.which == 51)  {
+            cur_enveloppe_sustain = cur_enveloppe_sustain - 0.05;
+            if (cur_enveloppe_sustain < 0)  { cur_enveloppe_sustain = 0;}
+            log_info("Sustain -" + cur_enveloppe_sustain)
+            synth.set({envelope: {sustain: cur_enveloppe_sustain }});
+        } else if (e.which == 52)  {
+            cur_enveloppe_sustain = cur_enveloppe_sustain + 0.05;
+            if (cur_enveloppe_sustain > 1)  { cur_enveloppe_sustain = 1;}
+            log_info("Sustain +" + cur_enveloppe_sustain)
+            synth.set({envelope: {sustain: cur_enveloppe_sustain }});
+        } else if (e.which == 53)  {
+            cur_detune = cur_detune - 5;
+            synth.set({ oscillator: { spread : cur_detune }});
+            log_info("Detune - " + cur_detune.toFixed(1));    
+            
+        } else if (e.which == 54)  {
+            cur_detune = cur_detune + 5;
+            synth.set({ oscillator: { spread : cur_detune }});
+            log_info("Detune + " + cur_detune.toFixed(1));
+        } else if (e.which == 55)  {  
+            cur_disto = cur_disto - 0.05;
+            if (cur_disto < 0)  { cur_disto = 0;}
+            distortion.set({
+                distortion: cur_disto
+            });
+            log_info("Disto -" + cur_disto)  
+        } else if (e.which == 56)  {
+            cur_disto = cur_disto + 0.05;
+            if (cur_disto > 1)  { cur_disto = 1;}
+            distortion.set({
+                distortion: cur_disto
+            });
+            log_info("Disto +" + cur_disto)
+        } else if (e.which == 16)  {
+            cur_osc_id = cur_osc_id + 1
+            if (cur_osc_id >= osc_type.length) {cur_osc_id = 0}
+            synth.set({oscillator: { type: osc_type[cur_osc_id] } });
+            osc.colorize("accent",osc_color[cur_osc_id]);
+            document.getElementById('mainTable').style.borderColor = osc_color[cur_osc_id] + "99";
+            document.getElementById('display').style.color = osc_color[cur_osc_id];
+            log_info("Osc " + osc_type[cur_osc_id]);
+        } else if (e.which == 38)  {
+            // arrow up
+            octave_shift = octave_shift + 1;
+            log_info("Octave + " + octave_shift)
+            recalulate_note();
+        } else if (e.which == 40)  {
+            // arrow down
+            octave_shift = octave_shift - 1;
+            log_info("Octave - " + octave_shift)
+            recalulate_note();
+        } else if (e.which == 57)  {
+            cur_delay = cur_delay  - 0.1;
+            if (cur_delay < 0)  { cur_delay = 0;}
+            cur_delay_time = getHigherTempo(cur_tempo);
+            if (cur_delay === 0) {cur_delay_time = '128n'}
+            pingpongdelay.set({delayTime : cur_tempo , feedback: cur_delay });
+            log_info("Delay - " + cur_delay + " - " + cur_delay_time);
+        } else if (e.which == 48)  {
+            cur_delay = cur_delay  + 0.1;
+            if (cur_delay > 1)  { cur_delay = 1;}
+            cur_delay_time = getHigherTempo(cur_tempo);
+            if (cur_delay === 0) {cur_delay_time = '128n'}
+            pingpongdelay.set({delayTime : cur_delay_time , feedback: cur_delay });
+            log_info("Delay - " + cur_delay + " - " + cur_delay_time);
+        } else if (e.which == 39)  {
+            cur_filter_freq = cur_filter_freq + ((cur_filter_freq )/10);
+            if (cur_filter_freq > 9000)  { cur_filter_freq = 9000;}
+            filter.set({
+                frequency: cur_filter_freq
+            });
+            log_info("Filter +" + cur_filter_freq.toFixed(1))
+        } else if (e.which == 37)  {
+            cur_filter_freq = cur_filter_freq - ((cur_filter_freq )/10);
+            if (cur_filter_freq < 1)  { cur_filter_freq = 1;}
+            filter.set({
+                frequency: cur_filter_freq
+            });
+            log_info("Filter -" + cur_filter_freq.toFixed(1))
+        }else if (e.which == 219)  {
+            cur_tempo_id = cur_tempo_id - 1;
+            if (cur_tempo_id <= 0) {cur_tempo_id = 0};
+            cur_tempo =  tempo_value[cur_tempo_id]
+            cur_delay_time = getHigherTempo(cur_tempo);
+            log_info("Tempo - " + cur_tempo + " " + cur_tempo_id);
+            if (cur_delay === 0) {cur_delay_time = '128n'}
+            pingpongdelay.set({delayTime : cur_delay_time , feedback: cur_delay });
+        }else if (e.which == 187)  {
+            cur_tempo_id = cur_tempo_id + 1
+            if (cur_tempo_id >= (tempo_value.length - 2)) {cur_tempo_id = (tempo_value.length -2)};
+            cur_tempo =  tempo_value[cur_tempo_id]
+            cur_delay_time = getHigherTempo(cur_tempo);
+            if (cur_delay === 0) {cur_delay_time = '128n'}
+            pingpongdelay.set({delayTime : cur_delay_time , feedback: cur_delay });
+            log_info("Tempo + " + cur_tempo + " " + cur_tempo_id);
+        } else if (e.which == 32)  {
+            handleShift();
+        } else if (e.which == 20)  {
+            arpOn = !arpOn;
+            if (arpOn) {
+                keyboard.addButtonTheme("Poly-Arp", "hg-highlight");
+            } else {
+                keyboard.removeButtonTheme("Poly-Arp", "hg-highlight");
+            }
         }
+
     }
+    
 }
 
 function getHigherTempo(mytempo) {
@@ -299,6 +294,31 @@ function delayTimeCalc(delay) {
             break;
     }
     return timeDelay;
+
+}
+
+function IDtoName(ID) {
+    var IDname = {};
+    IDname[49] = "A-";
+    IDname[50] = "A+";
+    IDname[51] = "S-";
+    IDname[52] = "S+";
+    IDname[53] = "Dt-";
+    IDname[54] = "Dt+";
+    IDname[55] = "Di-";
+    IDname[56] = "Di+";
+    IDname[57] = "De-";
+    IDname[48] = "De+";
+    IDname[219] = "T-";
+    IDname[187] = "T+";
+    /*IDname[] = "-";
+    IDname[] = "+";
+    IDname[] = "-";
+    IDname[] = "+";
+    IDname[] = "-";
+    IDname[] = "+";
+    IDname[] = "-";*/
+    return IDname[ID];
 
 }
 

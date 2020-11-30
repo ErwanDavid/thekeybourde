@@ -6,6 +6,13 @@
   --main-synth-border-color : blanchedalmond;
 }
 
+a:link {
+  color: blue;
+}
+
+a:visited {
+  color: blue;
+}
 
 body {
     background-color:var(--main-bg-color);
@@ -44,7 +51,7 @@ footer {
   width: 78%; 
   display: table;
   background-color: var(--main-synth-bg-color);
-  border: var(--main-synth-border) solid var(--main-synth-border-color);
+  border: 8px solid #1B8BD2;
   border-radius: 25px;
   max-width: 1400px;
 
