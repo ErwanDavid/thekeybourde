@@ -32,6 +32,7 @@ const synth  = new Tone.PolySynth(Tone.Synth, {
     }).toDestination();
 
 Tone.Destination.chain(filter, distortion, pingpongdelay);
+Tone.start()
 log_info("Synth ready");
 
 let osc = new Nexus.Oscilloscope("#scope", {'size': [340,480] });
@@ -41,6 +42,7 @@ document.getElementById('mainTable').style.borderColor = osc_color[cur_osc_id]  
 document.getElementById('display').style.color = osc_color[cur_osc_id];
 osc.colorize("fill","#000000")
 osc.connect(Tone.Master);
+
 log_info("Oscillo ready");
 
 
@@ -50,19 +52,15 @@ function playNote(note) {
     if (note_on.length < 4) {
         note_on.push(note);
         if (arpOn) {
-            //Tone.Transport.stop();
-            Tone.Transport.position = 0;
             Tone.Transport.cancel();
             Tone.Transport.scheduleRepeat((time) => {
                 var relativeTime = 0;
-                for (const note_arp in note_on.sort()) {
+                for (const note_arp in note_on) {
                     log_info("   sched ARP " + note_on[note_arp] + " " + relativeTime + " " + cur_tempo);
                     synth.triggerAttackRelease( note_on[note_arp], getdelayArp(cur_tempo_id, note_on.length), time + relativeTime);
                     relativeTime += Tone.Time(getdelayArp(cur_tempo_id, note_on.length)).toSeconds();
                 }
             }, cur_tempo);
-            // transport must be started before it starts invoking events
-            Tone.Transport.start();
             log_info("  ARP " + enTofrTab(note_on));
         } else {
                 
@@ -81,20 +79,26 @@ function playNote(note) {
 
 function releaseNote(note) {
     keyboard.removeButtonTheme(enTofr(note), "hg-highlight");
-    if (arpOn) {
-        //Tone.Transport.stop();
-        //Tone.Transport.position = 0;
-        Tone.Transport.cancel();
-
-    }
-    else {
-        synth.triggerRelease(note);
-    }
-
-
     const index = note_on.indexOf(note);
     if (index > -1) {
         note_on.splice(index, 1);
+    }
+    if (arpOn) {
+        Tone.Transport.cancel();
+        if (note_on.length > 0) {
+            Tone.Transport.scheduleRepeat((time) => {
+                var relativeTime = 0;
+                for (const note_arp in note_on) {
+                    log_info("   sched ARP " + note_on[note_arp] + " " + relativeTime + " " + cur_tempo);
+                    synth.triggerAttackRelease( note_on[note_arp], getdelayArp(cur_tempo_id, note_on.length), time + relativeTime);
+                    relativeTime += Tone.Time(getdelayArp(cur_tempo_id, note_on.length)).toSeconds();
+                }
+            }, cur_tempo);
+            log_info("  ARP " + enTofrTab(note_on));
+        } 
+    }
+    else {
+        synth.triggerRelease(note);
     }
     log_info("  Stop " + enTofr(note) );
 }
@@ -118,8 +122,6 @@ document.onkeyup = function(e) {
 }
 
 document.onkeydown = function(e) {
-    console.log(e.which);
-    
     if (e.which in key_note) {
         var note_string = key_note[e.which]
         if (note_on.includes(note_string)) {
@@ -241,8 +243,10 @@ document.onkeydown = function(e) {
             arpOn = !arpOn;
             if (arpOn) {
                 keyboard.addButtonTheme("Poly-Arp", "hg-highlight");
+                Tone.Transport.start();
             } else {
                 keyboard.removeButtonTheme("Poly-Arp", "hg-highlight");
+                Tone.Transport.stop();
             }
         }
 
