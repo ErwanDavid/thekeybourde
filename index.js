@@ -85,15 +85,17 @@ function onChange(input) {
   console.log("Input changed", input);
 }
 
+function onKeyPress(button) {
+  console.log("Button pressed", button);
+  playNote("C4");
+  releaseNote("C4");
+
+}
+
 document.onkeydown = function(e) {
 //function onKeyPress(button) {
-  let button = e.code;
-  console.log("Button pressed", button);
-
-  /**
-   * If you want to handle the shift and caps lock buttons
-   */
-  if (button === "Space" || button === "CapsLock") handleShift();
+  let mybutton = e.code;
+  console.log("Button pressed", mybutton);
 }
 
 

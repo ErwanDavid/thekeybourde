@@ -50,6 +50,7 @@ log_info("Oscillo ready");
 
 
 function playNote(note) {
+    log_info("  playNote " +note);
     keyboard.addButtonTheme(enTofr(note), "hg-highlight"); 
     if (note_on.length < 4) {
         note_on.push(note);
