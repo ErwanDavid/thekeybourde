@@ -1,6 +1,8 @@
 
-var osc_type =  ['sine','fatsquare', 'triangle', 'fatsawtooth'];
-var osc_color = ['#1B8BD2', '#FFFF33', '#008000', '#ff4500']; // 507C9E  
+//var osc_type =  ['sine','fatsquare', 'triangle', 'fatsawtooth'];
+var osc_type =  ['fatsawtooth','fatsquare', 'triangle', 'sine'];
+//var osc_color = ['#1B8BD2', '#FFFF33', '#008000', '#ff4500']; // 507C9E  
+var osc_color = [ '#ff4500','#FFFF33', '#008000', '#1B8BD2']; // 507C9E  
 var cur_osc_id = 0;
 var tempo_value =  ['2n','4n', '8n', '16n', '32n', '64n', '128n'];
 var cur_tempo_id = 1 ;
@@ -10,7 +12,7 @@ var cur_enveloppe_sustain =  0.1;
 var cur_filter_freq = 9000;
 var cur_disto =  0.0;
 var cur_delay =  0.0;
-var cur_detune =  0;
+var cur_detune =  5;
 var cur_delay_time =  '128n';
 var octave_shift = 4;
 var arpOn = false ;
@@ -25,9 +27,9 @@ const pingpongdelay =  new Tone.PingPongDelay(cur_delay_time, cur_delay);
 const distortion = new Tone.Distortion(cur_disto);
 const synth  = new Tone.PolySynth(Tone.Synth, {
     oscillator: {
-        type: "sine",
-        count: 2,
-        spread: 30
+        type: osc_type[cur_osc_id],
+        count: 3,
+        spread: cur_detune
     }
     }).toDestination();
 
@@ -379,7 +381,7 @@ function log_info(mytext) {
     document.getElementById('logs').scrollTop = document.getElementById('logs').scrollHeight ;
     document.getElementById('display').value =  ' Attack       : ' + cur_enveloppe_attack.toFixed(2) + '\t';
     document.getElementById('display').value += ' Sustain      : ' + cur_enveloppe_sustain.toFixed(2) + '\t';
-    document.getElementById('display').value += ' Oscillator   : ' + osc_type[cur_osc_id] + '\n';
+    document.getElementById('display').value += ' Oscillator   : ' + osc_type[cur_osc_id].replace('fat', '') + '\n';
     document.getElementById('display').value += ' Cut Off      : ' + cur_filter_freq.toFixed(0) + '\t';
     document.getElementById('display').value += ' Distortion   : ' + cur_disto.toFixed(2) + '\t';
     document.getElementById('display').value += ' Delay        : ' + cur_delay.toFixed(1) + "\n";
