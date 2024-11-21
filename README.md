@@ -3,7 +3,7 @@ This is a small polyphonic synth based on tone.js, simple-keyboard and nexusUI :
 
 Physical keyboard required (no phones).
 
-![alt text](screeen2.png "keybourde")
+![alt text](screen2.png "keybourde")
 
 
 
