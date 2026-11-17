@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envoi de notes MIDI</title>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    max-width: 480px;
+    margin: 40px auto;
+    padding: 0 16px;
+    background: #1e1e2e;
+    color: #e0e0e0;
+  }
+  h1 { font-size: 1.3rem; }
+  .row { margin-bottom: 14px; }
+  label { display: block; margin-bottom: 4px; font-size: 0.9rem; color: #aaa; }
+  select, button {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #2a2a3d;
+    color: #e0e0e0;
+    box-sizing: border-box;
+  }
+  button {
+    background: #4c6ef5;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  button:disabled { background: #444; cursor: not-allowed; }
+  button:active { background: #3b5bdb; }
+  #status { font-size: 0.85rem; color: #888; margin-top: 16px; }
+</style>
+</head>
+<body>
+  <h1>🎹 Envoi de notes MIDI</h1>
+
+  <div class="row">
+    <label for="portSelect">Port MIDI (sortie)</label>
+    <select id="portSelect"><option value="">— aucun port détecté —</option></select>
+  </div>
+
+  <div class="row">
+    <label for="channelSelect">Canal MIDI</label>
+    <select id="channelSelect"></select>
+  </div>
+
+  <div class="row">
+    <label for="noteSelect">Note</label>
+    <select id="noteSelect"></select>
+  </div>
+
+  <div class="row">
+    <label for="velocitySelect">Vélocité</label>
+    <select id="velocitySelect"></select>
+  </div>
+
+  <button id="sendBtn" disabled>Envoyer la note</button>
+
+  <div id="status">Web MIDI non initialisé.</div>
+
+<script>
+(function () {
+  const portSelect = document.getElementById('portSelect');
+  const channelSelect = document.getElementById('channelSelect');
+  const noteSelect = document.getElementById('noteSelect');
+  const velocitySelect = document.getElementById('velocitySelect');
+  const sendBtn = document.getElementById('sendBtn');
+  const statusEl = document.getElementById('status');
+
+  const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  let output = null;
+
+  for (let c = 1; c <= 16; c++) {
+    const opt = document.createElement('option');
+    opt.value = c - 1;
+    opt.textContent = 'Canal ' + c;
+    channelSelect.appendChild(opt);
+  }
+
+  for (let n = 0; n < 128; n++) {
+    const opt = document.createElement('option');
+    opt.value = n;
+    opt.textContent = NOTE_NAMES[n % 12] + (Math.floor(n / 12) - 1) + ' (' + n + ')';
+    noteSelect.appendChild(opt);
+  }
+  noteSelect.value = 60;
+
+  [10, 32, 64, 96, 127].forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    velocitySelect.appendChild(opt);
+  });
+  velocitySelect.value = 100;
+
+  function setStatus(msg) { statusEl.textContent = msg; }
+
+  function refreshPorts() {
+    const selectedId = portSelect.value;
+    portSelect.innerHTML = '';
+    const list = Array.from(midiAccess.outputs.values());
+    list.forEach(port => {
+      const opt = document.createElement('option');
+      opt.value = port.id;
+      opt.textContent = port.name;
+      portSelect.appendChild(opt);
+    });
+    if (!list.length) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '— aucun port détecté —';
+      portSelect.appendChild(opt);
+      output = null;
+      sendBtn.disabled = true;
+    } else {
+      if (selectedId && list.some(p => p.id === selectedId)) portSelect.value = selectedId;
+      connectSelected();
+    }
+  }
+
+  function connectSelected() {
+    output = portSelect.value ? midiAccess.outputs.get(portSelect.value) : null;
+    sendBtn.disabled = !output;
+    setStatus(output ? 'Port sélectionné : ' + output.name : 'Aucun port sélectionné.');
+  }
+
+  function sendNote() {
+    if (!output) return;
+    const channel = parseInt(channelSelect.value, 10);
+    const note = parseInt(noteSelect.value, 10);
+    const velocity = parseInt(velocitySelect.value, 10);
+
+    output.send([0x90 | channel, note, velocity]);
+    setStatus('Note On  → canal ' + (channel + 1) + ', note ' + note + ', vélocité ' + velocity);
+
+    setTimeout(() => {
+      output.send([0x80 | channel, note, 0]);
+      setStatus('Note Off envoyée (canal ' + (channel + 1) + ', note ' + note + ')');
+    }, 300);
+  }
+
+  let midiAccess = null;
+
+  if (navigator.requestMIDIAccess) {
+    navigator.requestMIDIAccess({ sysex: false })
+      .then(access => {
+        midiAccess = access;
+        setStatus('Web MIDI prêt. ' + access.outputs.size + ' sortie(s) détectée(s).');
+        refreshPorts();
+        access.addEventListener('statechange', refreshPorts);
+        sendBtn.addEventListener('click', sendNote);
+        portSelect.addEventListener('change', connectSelected);
+      })
+      .catch(err => setStatus('Erreur d\'accès MIDI : ' + err.message));
+  } else {
+    setStatus('Web MIDI API non supportée par ce navigateur (utiliser Chrome, Edge ou Opera).');
+  }
+})();
+</script>
+</body>
+</html>
