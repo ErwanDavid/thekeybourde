@@ -3,66 +3,115 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Envoi de notes MIDI</title>
+<title>Step Sequencer MIDI</title>
 <style>
+  :root {
+    color-scheme: dark;
+    --page: #171a18;
+    --panel: #222724;
+    --panel-raised: #2c332e;
+    --line: #465148;
+    --text: #edf2e8;
+    --muted: #9da99e;
+    --accent: #c7ef69;
+    --cyan: #66d6cf;
+    --orange: #ffae67;
+    --pink: #f27b91;
+  }
+  * { box-sizing: border-box; }
   body {
-    font-family: system-ui, sans-serif;
-    max-width: 480px;
-    margin: 40px auto;
-    padding: 0 16px;
-    background: #1e1e2e;
-    color: #e0e0e0;
+    margin: 0;
+    padding: 30px clamp(16px, 4vw, 56px) 48px;
+    background: radial-gradient(ellipse at 12% 0%, #303b32 0, var(--page) 43rem);
+    color: var(--text);
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
   }
-  h1 { font-size: 1.3rem; }
-  .row { margin-bottom: 14px; }
-  label { display: block; margin-bottom: 4px; font-size: 0.9rem; color: #aaa; }
-  select, button {
-    width: 100%;
-    padding: 10px;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: 1px solid #444;
-    background: #2a2a3d;
-    color: #e0e0e0;
-    box-sizing: border-box;
+  main { max-width: 1240px; margin: 0 auto; }
+  h1 { margin: 0; font-size: clamp(1.4rem, 3vw, 2rem); letter-spacing: 0; }
+  .eyebrow { color: var(--accent); font-size: .75rem; text-transform: uppercase; }
+  .topline { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
+  .midi-setup { display: grid; grid-template-columns: minmax(210px, 1fr) auto; gap: 14px; align-items: end; margin-bottom: 24px; }
+  label { display: block; margin-bottom: 6px; color: var(--muted); font-size: .75rem; }
+  select, input, button { min-height: 38px; border: 1px solid var(--line); border-radius: 3px; background: var(--panel); color: var(--text); font: inherit; }
+  select, input { width: 100%; padding: 8px; }
+  button { padding: 8px 14px; cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .42; cursor: not-allowed; }
+  .transport { display: flex; align-items: end; gap: 10px; padding: 14px; border-block: 1px solid var(--line); background: rgb(34 39 36 / 70%); }
+  .transport button { min-width: 90px; }
+  #playBtn { background: var(--accent); border-color: var(--accent); color: #192016; font-weight: 700; }
+  #stopBtn { background: transparent; }
+  .tempo-control { width: 100px; }
+  .transport-readout { margin-left: auto; color: var(--muted); font-size: .8rem; }
+  .sequencer { margin-top: 20px; border-bottom: 1px solid var(--line); }
+  .steps-scroll { overflow-x: auto; padding-bottom: 10px; }
+  .step-head, .track { min-width: 780px; display: grid; grid-template-columns: 220px repeat(16, minmax(28px, 1fr)); gap: 5px; }
+  .step-head { align-items: end; margin-bottom: 8px; color: var(--muted); text-align: center; font-size: .68rem; }
+  .step-head span:nth-child(4n + 2) { color: var(--text); }
+  .track { align-items: stretch; margin-bottom: 8px; }
+  .track-controls { display: grid; grid-template-columns: 1fr 72px 64px 60px 36px; gap: 5px; padding: 7px; background: var(--panel); border-left: 3px solid var(--track-color); }
+  .track-name { align-self: center; color: var(--track-color); font-weight: 700; font-size: .78rem; }
+  .track-controls label { margin: 0; }
+  .track-controls input, .track-controls select { min-height: 34px; padding: 5px; font-size: .72rem; }
+  .track-controls .field { min-width: 0; }
+  .mute-btn { align-self: end; width: 36px; min-height: 34px; padding: 0; color: var(--muted); }
+  .mute-btn[aria-pressed="true"] { color: var(--track-color); border-color: var(--track-color); }
+  .step { width: 100%; aspect-ratio: 1; min-height: 28px; padding: 0; border-color: #3b443d; background: var(--panel-raised); }
+  .step:nth-of-type(4n) { margin-right: 3px; }
+  .step[aria-pressed="true"] { background: var(--track-color); border-color: var(--track-color); box-shadow: inset 0 -4px rgb(0 0 0 / 18%); }
+  .step.is-current { outline: 2px solid #fff; outline-offset: 1px; }
+  .track.is-muted .step { opacity: .35; }
+  .manual { display: grid; grid-template-columns: repeat(4, minmax(100px, 1fr)) auto; gap: 10px; align-items: end; margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .manual h2 { grid-column: 1 / -1; margin: 0; font-size: .9rem; }
+  #sendBtn { background: var(--panel-raised); }
+  #status { min-height: 1.2em; margin-top: 18px; color: var(--muted); font-size: .75rem; }
+  @media (max-width: 700px) {
+    body { padding-inline: 12px; }
+    .topline { align-items: start; flex-direction: column; }
+    .midi-setup { grid-template-columns: 1fr; }
+    .transport { flex-wrap: wrap; }
+    .transport-readout { width: 100%; margin-left: 0; }
+    .manual { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .manual h2 { grid-column: 1 / -1; }
+    .manual button { grid-column: 1 / -1; }
   }
-  button {
-    background: #4c6ef5;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  button:disabled { background: #444; cursor: not-allowed; }
-  button:active { background: #3b5bdb; }
-  #status { font-size: 0.85rem; color: #888; margin-top: 16px; }
 </style>
 </head>
 <body>
-  <h1>🎹 Envoi de notes MIDI</h1>
+<main>
+  <header class="topline">
+    <div><div class="eyebrow">Web MIDI / 16 steps</div><h1>Step Sequencer</h1></div>
+  </header>
 
-  <div class="row">
-    <label for="portSelect">Port MIDI (sortie)</label>
-    <select id="portSelect"><option value="">— aucun port détecté —</option></select>
-  </div>
+  <section class="midi-setup" aria-label="Configuration MIDI">
+    <div><label for="portSelect">Sortie MIDI</label><select id="portSelect"><option value="">Aucun port detecte</option></select></div>
+    <div class="transport-readout" id="portReadout">En attente de Web MIDI</div>
+  </section>
 
-  <div class="row">
-    <label for="channelSelect">Canal MIDI</label>
-    <select id="channelSelect"></select>
-  </div>
+  <section class="transport" aria-label="Transport">
+    <button id="playBtn" type="button" disabled>▶ Lire</button>
+    <button id="stopBtn" type="button" disabled>■ Stop</button>
+    <button id="clearBtn" type="button">Effacer</button>
+    <div class="tempo-control"><label for="tempoInput">Tempo (BPM)</label><input id="tempoInput" type="number" min="40" max="240" value="120"></div>
+    <div class="transport-readout" id="positionReadout">Arrete</div>
+  </section>
 
-  <div class="row">
-    <label for="noteSelect">Note</label>
-    <select id="noteSelect"></select>
-  </div>
+  <section class="sequencer" aria-label="Grille du sequencer">
+    <div class="steps-scroll">
+      <div class="step-head" id="stepHead"><span></span></div>
+      <div id="tracks"></div>
+    </div>
+  </section>
 
-  <div class="row">
-    <label for="velocitySelect">Vélocité</label>
-    <select id="velocitySelect"></select>
-  </div>
-
-  <button id="sendBtn" disabled>Envoyer la note</button>
-
-  <div id="status">Web MIDI non initialisé.</div>
+  <section class="manual" aria-label="Envoi manuel">
+    <h2>Note MIDI manuelle</h2>
+    <div><label for="channelSelect">Canal</label><select id="channelSelect"></select></div>
+    <div><label for="noteSelect">Note (0-127)</label><input id="noteSelect" type="number" min="0" max="127" value="60"></div>
+    <div><label for="velocitySelect">Velocite</label><input id="velocitySelect" type="number" min="1" max="127" value="100"></div>
+    <button id="sendBtn" type="button" disabled>Envoyer</button>
+  </section>
+  <div id="status" role="status" aria-live="polite">Web MIDI non initialise.</div>
+</main>
 
 <script>
 (function () {
@@ -71,95 +120,266 @@
   const noteSelect = document.getElementById('noteSelect');
   const velocitySelect = document.getElementById('velocitySelect');
   const sendBtn = document.getElementById('sendBtn');
+  const playBtn = document.getElementById('playBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const tempoInput = document.getElementById('tempoInput');
+  const tracksEl = document.getElementById('tracks');
+  const stepHead = document.getElementById('stepHead');
   const statusEl = document.getElementById('status');
-
-  const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const portReadout = document.getElementById('portReadout');
+  const positionReadout = document.getElementById('positionReadout');
+  const trackNames = ['TRACK 01', 'TRACK 02', 'TRACK 03', 'KICK', 'SNARE', 'HI-HAT', 'CLAP'];
+  const trackColors = ['#c7ef69', '#66d6cf', '#ffae67', '#f27b91', '#e88ac7', '#9ba8ff', '#e7dc74'];
+  const trackNotes = [60, 48, 36, 36, 38, 42, 39];
+  const patterns = Array.from({ length: trackNames.length }, () => Array(16).fill(false));
+  const muted = Array(trackNames.length).fill(false);
+  const activeNotes = new Map();
   let output = null;
+  let midiAccess = null;
+  let scheduler = null;
+  let nextStep = 0;
+  let nextStepTime = 0;
+  let isPlaying = false;
 
-  for (let c = 1; c <= 16; c++) {
-    const opt = document.createElement('option');
-    opt.value = c - 1;
-    opt.textContent = 'Canal ' + c;
-    channelSelect.appendChild(opt);
+  function setStatus(message) { statusEl.textContent = message; }
+
+  function makeOption(value, label) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    return option;
   }
 
-  for (let n = 0; n < 128; n++) {
-    const opt = document.createElement('option');
-    opt.value = n;
-    opt.textContent = NOTE_NAMES[n % 12] + (Math.floor(n / 12) - 1) + ' (' + n + ')';
-    noteSelect.appendChild(opt);
+  for (let channel = 0; channel < 16; channel++) {
+    channelSelect.appendChild(makeOption(channel, 'Canal ' + (channel + 1)));
   }
-  noteSelect.value = 60;
 
-  [10, 32, 64, 96, 127].forEach(v => {
-    const opt = document.createElement('option');
-    opt.value = v;
-    opt.textContent = v;
-    velocitySelect.appendChild(opt);
-  });
-  velocitySelect.value = 100;
+  for (let step = 0; step < 16; step++) {
+    stepHead.appendChild(document.createElement('span'));
+    stepHead.lastChild.textContent = step + 1;
+  }
 
-  function setStatus(msg) { statusEl.textContent = msg; }
+  function buildTracks() {
+    for (let trackIndex = 0; trackIndex < trackNames.length; trackIndex++) {
+      const row = document.createElement('div');
+      row.className = 'track';
+      row.dataset.track = trackIndex;
+      row.style.setProperty('--track-color', trackColors[trackIndex]);
 
-  function refreshPorts() {
-    const selectedId = portSelect.value;
-    portSelect.innerHTML = '';
-    const list = Array.from(midiAccess.outputs.values());
-    list.forEach(port => {
-      const opt = document.createElement('option');
-      opt.value = port.id;
-      opt.textContent = port.name;
-      portSelect.appendChild(opt);
-    });
-    if (!list.length) {
-      const opt = document.createElement('option');
-      opt.value = '';
-      opt.textContent = '— aucun port détecté —';
-      portSelect.appendChild(opt);
-      output = null;
-      sendBtn.disabled = true;
-    } else {
-      if (selectedId && list.some(p => p.id === selectedId)) portSelect.value = selectedId;
-      connectSelected();
+      const controls = document.createElement('div');
+      controls.className = 'track-controls';
+      const name = document.createElement('span');
+      name.className = 'track-name';
+      name.textContent = trackNames[trackIndex];
+      controls.appendChild(name);
+
+      const channelField = document.createElement('div');
+      channelField.className = 'field';
+      const channelLabel = document.createElement('label');
+      channelLabel.textContent = 'Ch';
+      const channel = document.createElement('select');
+      channel.className = 'track-channel';
+      channel.setAttribute('aria-label', 'Canal MIDI piste ' + (trackIndex + 1));
+      for (let value = 0; value < 16; value++) channel.appendChild(makeOption(value, String(value + 1)));
+      channel.value = Math.min(trackIndex, 3);
+      channel.disabled = true;
+      channelField.append(channelLabel, channel);
+
+      const noteField = document.createElement('div');
+      noteField.className = 'field';
+      const noteLabel = document.createElement('label');
+      noteLabel.textContent = 'Note';
+      const note = document.createElement('input');
+      note.className = 'track-note';
+      note.type = 'number';
+      note.min = '0';
+      note.max = '127';
+      note.value = trackNotes[trackIndex];
+      note.setAttribute('aria-label', 'Note MIDI piste ' + (trackIndex + 1));
+      noteField.append(noteLabel, note);
+
+      const velocityField = document.createElement('div');
+      velocityField.className = 'field';
+      const velocityLabel = document.createElement('label');
+      velocityLabel.textContent = 'Vel';
+      const velocity = document.createElement('input');
+      velocity.className = 'track-velocity';
+      velocity.type = 'number';
+      velocity.min = '1';
+      velocity.max = '127';
+      velocity.value = '100';
+      velocity.setAttribute('aria-label', 'Velocite piste ' + (trackIndex + 1));
+      velocityField.append(velocityLabel, velocity);
+
+      const mute = document.createElement('button');
+      mute.className = 'mute-btn';
+      mute.type = 'button';
+      mute.textContent = 'M';
+      mute.title = 'Muet';
+      mute.setAttribute('aria-label', 'Couper piste ' + (trackIndex + 1));
+      mute.setAttribute('aria-pressed', 'false');
+      controls.append(channelField, noteField, velocityField, mute);
+      row.appendChild(controls);
+
+      for (let step = 0; step < 16; step++) {
+        const button = document.createElement('button');
+        button.className = 'step';
+        button.type = 'button';
+        button.dataset.step = step;
+        button.setAttribute('aria-label', 'Piste ' + (trackIndex + 1) + ', pas ' + (step + 1));
+        button.setAttribute('aria-pressed', 'false');
+        row.appendChild(button);
+      }
+      tracksEl.appendChild(row);
     }
   }
 
+  function refreshPorts() {
+    const selectedId = portSelect.value;
+    const ports = midiAccess ? Array.from(midiAccess.outputs.values()) : [];
+    portSelect.replaceChildren();
+    ports.forEach(port => portSelect.appendChild(makeOption(port.id, port.name)));
+    if (!ports.length) {
+      portSelect.appendChild(makeOption('', 'Aucun port detecte'));
+      stopSequencer();
+      output = null;
+      playBtn.disabled = true;
+      sendBtn.disabled = true;
+      portReadout.textContent = 'Aucune sortie MIDI';
+      return;
+    }
+    if (selectedId && ports.some(port => port.id === selectedId)) portSelect.value = selectedId;
+    connectSelected();
+  }
+
   function connectSelected() {
-    output = portSelect.value ? midiAccess.outputs.get(portSelect.value) : null;
+    if (isPlaying) stopSequencer();
+    output = midiAccess && portSelect.value ? midiAccess.outputs.get(portSelect.value) : null;
+    playBtn.disabled = !output;
     sendBtn.disabled = !output;
-    setStatus(output ? 'Port sélectionné : ' + output.name : 'Aucun port sélectionné.');
+    portReadout.textContent = output ? output.name : 'Aucune sortie MIDI';
+    setStatus(output ? 'Sortie MIDI prete : ' + output.name : 'Aucune sortie MIDI selectionnee.');
+  }
+
+  function boundedValue(element, min, max, fallback) {
+    const value = Number(element.value);
+    return Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : fallback;
   }
 
   function sendNote() {
     if (!output) return;
-    const channel = parseInt(channelSelect.value, 10);
-    const note = parseInt(noteSelect.value, 10);
-    const velocity = parseInt(velocitySelect.value, 10);
-
+    const channel = Number(channelSelect.value);
+    const note = boundedValue(noteSelect, 0, 127, 60);
+    const velocity = boundedValue(velocitySelect, 1, 127, 100);
     output.send([0x90 | channel, note, velocity]);
-    setStatus('Note On  → canal ' + (channel + 1) + ', note ' + note + ', vélocité ' + velocity);
-
-    setTimeout(() => {
-      output.send([0x80 | channel, note, 0]);
-      setStatus('Note Off envoyée (canal ' + (channel + 1) + ', note ' + note + ')');
-    }, 300);
+    setTimeout(() => output && output.send([0x80 | channel, note, 0]), 600);
+    setStatus('Note envoyee sur le canal ' + (channel + 1) + ', note ' + note + '.');
   }
 
-  let midiAccess = null;
+  function setPlayhead(step) {
+    tracksEl.querySelectorAll('.step').forEach(button => {
+      button.classList.toggle('is-current', Number(button.dataset.step) === step);
+    });
+    positionReadout.textContent = 'Pas ' + (step + 1) + ' / 16';
+  }
+
+  function scheduleStep(step, timestamp) {
+    setPlayhead(step);
+    const noteDuration = Math.max(30, (60000 / boundedValue(tempoInput, 40, 240, 120) / 4) * 0.8);
+    tracksEl.querySelectorAll('.track').forEach((row, trackIndex) => {
+      if (!patterns[trackIndex][step] || muted[trackIndex]) return;
+      const channel = Number(row.querySelector('.track-channel').value);
+      const note = boundedValue(row.querySelector('.track-note'), 0, 127, trackNotes[trackIndex]);
+      const velocity = boundedValue(row.querySelector('.track-velocity'), 1, 127, 100);
+      const key = channel + ':' + note;
+      output.send([0x90 | channel, note, velocity], timestamp);
+      const previous = activeNotes.get(key);
+      if (previous) clearTimeout(previous.timer);
+      const timer = setTimeout(() => {
+        if (output) output.send([0x80 | channel, note, 0]);
+        activeNotes.delete(key);
+      }, Math.max(0, timestamp - performance.now()) + noteDuration);
+      activeNotes.set(key, { channel, note, timer });
+      output.send([0x80 | channel, note, 0], timestamp + noteDuration);
+    });
+  }
+
+  function runScheduler() {
+    const lookahead = 100;
+    const stepDuration = 60000 / boundedValue(tempoInput, 40, 240, 120) / 4;
+    while (nextStepTime < performance.now() + lookahead) {
+      scheduleStep(nextStep, nextStepTime);
+      nextStep = (nextStep + 1) % 16;
+      nextStepTime += stepDuration;
+    }
+  }
+
+  function startSequencer() {
+    if (!output || isPlaying) return;
+    isPlaying = true;
+    nextStep = 0;
+    nextStepTime = performance.now() + 50;
+    playBtn.disabled = true;
+    stopBtn.disabled = false;
+    positionReadout.textContent = 'Lecture';
+    setStatus('Sequencer en lecture.');
+    runScheduler();
+    scheduler = setInterval(runScheduler, 25);
+  }
+
+  function stopSequencer() {
+    if (scheduler) clearInterval(scheduler);
+    scheduler = null;
+    isPlaying = false;
+    activeNotes.forEach(({ channel, note, timer }) => {
+      clearTimeout(timer);
+      if (output) output.send([0x80 | channel, note, 0]);
+    });
+    activeNotes.clear();
+    playBtn.disabled = !output;
+    stopBtn.disabled = true;
+    tracksEl.querySelectorAll('.step').forEach(button => button.classList.remove('is-current'));
+    positionReadout.textContent = 'Arrete';
+    if (output) setStatus('Sequencer arrete.');
+  }
+
+  buildTracks();
+  tracksEl.addEventListener('click', event => {
+    const row = event.target.closest('.track');
+    if (!row) return;
+    const trackIndex = Number(row.dataset.track);
+    if (event.target.matches('.step')) {
+      const step = Number(event.target.dataset.step);
+      patterns[trackIndex][step] = !patterns[trackIndex][step];
+      event.target.setAttribute('aria-pressed', String(patterns[trackIndex][step]));
+    }
+    if (event.target.matches('.mute-btn')) {
+      muted[trackIndex] = !muted[trackIndex];
+      event.target.setAttribute('aria-pressed', String(muted[trackIndex]));
+      event.target.setAttribute('aria-label', (muted[trackIndex] ? 'Activer' : 'Couper') + ' piste ' + (trackIndex + 1));
+      row.classList.toggle('is-muted', muted[trackIndex]);
+    }
+  });
+  playBtn.addEventListener('click', startSequencer);
+  stopBtn.addEventListener('click', stopSequencer);
+  clearBtn.addEventListener('click', () => {
+    patterns.forEach(pattern => pattern.fill(false));
+    tracksEl.querySelectorAll('.step').forEach(button => button.setAttribute('aria-pressed', 'false'));
+  });
+  sendBtn.addEventListener('click', sendNote);
+  portSelect.addEventListener('change', connectSelected);
 
   if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess({ sysex: false })
       .then(access => {
         midiAccess = access;
-        setStatus('Web MIDI prêt. ' + access.outputs.size + ' sortie(s) détectée(s).');
         refreshPorts();
         access.addEventListener('statechange', refreshPorts);
-        sendBtn.addEventListener('click', sendNote);
-        portSelect.addEventListener('change', connectSelected);
       })
-      .catch(err => setStatus('Erreur d\'accès MIDI : ' + err.message));
+      .catch(error => setStatus('Erreur d\'acces MIDI : ' + error.message));
   } else {
-    setStatus('Web MIDI API non supportée par ce navigateur (utiliser Chrome, Edge ou Opera).');
+    setStatus('Web MIDI non supporte par ce navigateur. Utilisez Chrome, Edge ou Opera.');
   }
 })();
 </script>
