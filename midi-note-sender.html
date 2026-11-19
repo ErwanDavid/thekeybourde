@@ -45,7 +45,7 @@
   .transport-readout { margin-left: auto; color: var(--muted); font-size: .8rem; }
   .sequencer { margin-top: 20px; border-bottom: 1px solid var(--line); }
   .steps-scroll { overflow-x: auto; padding-bottom: 10px; }
-  .step-head, .track { min-width: 780px; display: grid; grid-template-columns: 220px repeat(16, minmax(28px, 1fr)); gap: 5px; }
+  .step-head, .track { min-width: 940px; display: grid; grid-template-columns: 280px repeat(16, minmax(28px, 1fr)); gap: 5px; }
   .step-head { align-items: end; margin-bottom: 8px; color: var(--muted); text-align: center; font-size: .68rem; }
   .step-head span:nth-child(4n + 2) { color: var(--text); }
   .track { align-items: stretch; margin-bottom: 8px; }
@@ -56,7 +56,7 @@
   .track-controls .field { min-width: 0; }
   .mute-btn { align-self: end; width: 36px; min-height: 34px; padding: 0; color: var(--muted); }
   .mute-btn[aria-pressed="true"] { color: var(--track-color); border-color: var(--track-color); }
-  .step { width: 100%; aspect-ratio: 1; min-height: 28px; padding: 0; border-color: #3b443d; background: var(--panel-raised); }
+  .step { width: 100%; height: 32px; min-height: 32px; padding: 0; border-color: #3b443d; background: var(--panel-raised); }
   .step:nth-of-type(4n) { margin-right: 3px; }
   .step[aria-pressed="true"] { background: var(--track-color); border-color: var(--track-color); box-shadow: inset 0 -4px rgb(0 0 0 / 18%); }
   .step.is-current { outline: 2px solid #fff; outline-offset: 1px; }
