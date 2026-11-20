@@ -42,7 +42,8 @@
   #playBtn { background: var(--accent); border-color: var(--accent); color: #192016; font-weight: 700; }
   #stopBtn { background: transparent; }
   .tempo-control { width: 100px; }
-  .transport-readout { margin-left: auto; color: var(--muted); font-size: .8rem; }
+
+ .transport-readout { margin-left: auto; color: var(--muted); font-size: .8rem; }
   .sequencer { margin-top: 20px; border-bottom: 1px solid var(--line); }
   .steps-scroll { overflow-x: auto; padding-bottom: 10px; }
   .step-head, .track { min-width: 780px; display: grid; grid-template-columns: 220px repeat(16, minmax(28px, 1fr)); gap: 5px; }
@@ -89,8 +90,8 @@
   </section>
 
   <section class="transport" aria-label="Transport">
-    <button id="playBtn" type="button" disabled>▶ Lire</button>
-    <button id="stopBtn" type="button" disabled>■ Stop</button>
+    <button id="playBtn" type="button" disabled>&#9654; Lire</button>
+    <button id="stopBtn" type="button" disabled>&#9632; Stop</button>
     <button id="clearBtn" type="button">Effacer</button>
     <div class="tempo-control"><label for="tempoInput">Tempo (BPM)</label><input id="tempoInput" type="number" min="40" max="240" value="120"></div>
     <div class="transport-readout" id="positionReadout">Arrete</div>
@@ -129,9 +130,10 @@
   const statusEl = document.getElementById('status');
   const portReadout = document.getElementById('portReadout');
   const positionReadout = document.getElementById('positionReadout');
-  const trackNames = ['TRACK 01', 'TRACK 02', 'TRACK 03', 'KICK', 'SNARE', 'HI-HAT', 'CLAP'];
-  const trackColors = ['#c7ef69', '#66d6cf', '#ffae67', '#f27b91', '#e88ac7', '#9ba8ff', '#e7dc74'];
-  const trackNotes = [60, 48, 36, 36, 38, 42, 39];
+  const trackNames = ['TRACK 01', 'TRACK 01B', 'TRACK 02', 'TRACK 02B', 'TRACK 03', 'TRACK 03B', 'KICK', 'SNARE', 'HI-HAT', 'CLAP'];
+  const trackColors = ['#c7ef69', '#c7ef69', '#66d6cf', '#66d6cf', '#ffae67', '#ffae67', '#f27b91', '#e88ac7', '#9ba8ff', '#e7dc74'];
+  const trackNotes = [60, 60, 48, 48, 36, 36, 36, 38, 42, 39];
+  const trackChannels = [0, 0, 1, 1, 2, 2, 3, 3, 3, 3];
   const patterns = Array.from({ length: trackNames.length }, () => Array(16).fill(false));
   const muted = Array(trackNames.length).fill(false);
   const activeNotes = new Map();
@@ -182,7 +184,7 @@
       channel.className = 'track-channel';
       channel.setAttribute('aria-label', 'Canal MIDI piste ' + (trackIndex + 1));
       for (let value = 0; value < 16; value++) channel.appendChild(makeOption(value, String(value + 1)));
-      channel.value = Math.min(trackIndex, 3);
+      channel.value = trackChannels[trackIndex];
       channel.disabled = true;
       channelField.append(channelLabel, channel);
 
